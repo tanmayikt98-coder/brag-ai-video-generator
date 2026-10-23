@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Sewer Safety System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>Smart Sewer Safety System</h1>
+        <p>Worker Entry & Hazard Monitoring Dashboard</p>
+    </div>
+    <div class="system-online">
+        <span></span> SYSTEM ONLINE
+    </div>
+</header>
+
+<main>
+
+    <section class="top-grid">
+
+        <div class="status-card">
+            <div class="section-title">
+                <h2>Current Safety Status</h2>
+                <span id="lastUpdate">Updated now</span>
+            </div>
+
+            <div id="status" class="status safe">
+                SAFE
+            </div>
+
+            <p id="statusMessage">
+                Environmental conditions are safe for entry.
+            </p>
+
+            <div class="warning-box">
+                <strong>Entry Permission:</strong>
+                <span id="entryPermission">APPROVED</span>
+            </div>
+        </div>
+
+        <div class="worker-card">
+            <h2>Worker Entry</h2>
+
+            <label>Worker ID</label>
+
+            <div class="worker-input">
+                <input
+                    type="text"
+                    id="workerId"
+                    placeholder="Enter Worker ID"
+                >
+                <button onclick="checkEntry()">Check</button>
+            </div>
+
+            <div id="entryResult" class="entry-result">
+                Waiting for worker ID
+            </div>
+
+            <div class="worker-info">
+                <div>
+                    <small>Entry Time</small>
+                    <strong id="entryTime">--</strong>
+                </div>
+
+                <div>
+                    <small>Time Inside</small>
+                    <strong id="timer">00:00:00</strong>
+                </div>
+            </div>
+
+            <button
+                class="exit-button"
+                onclick="workerExit()">
+                Worker Exit
+            </button>
+        </div>
+
+    </section>
+
+    <section>
+        <div class="section-heading">
+            <h2>Live Environmental Monitoring</h2>
+            <span>Real-time sensor readings</span>
+        </div>
+
+        <div class="sensor-grid">
+
+            <div class="sensor-card">
+                <div class="sensor-icon">CH₄</div>
+                <div>
+                    <h3>Methane</h3>
+                    <p>MQ-4 Sensor</p>
+                </div>
+                <strong id="methane">1200</strong>
+            </div>
+
+            <div class="sensor-card">
+                <div class="sensor-icon">CO</div>
+                <div>
+                    <h3>Carbon Monoxide</h3>
+                    <p>MQ-7 Sensor</p>
+                </div>
+                <strong id="co">900</strong>
+            </div>
+
+            <div class="sensor-card">
+                <div class="sensor-icon">H₂S</div>
+                <div>
+                    <h3>Hydrogen Sulfide</h3>
+                    <p>MQ-136 Sensor</p>
+                </div>
+                <strong id="h2s">700</strong>
+            </div>
+
+            <div class="sensor-card">
+                <div class="sensor-icon">O₂</div>
+                <div>
+                    <h3>Oxygen</h3>
+                    <p>Optional Sensor</p>
+                </div>
+                <strong id="oxygen">20.9%</strong>
+            </div>
+
+            <div class="sensor-card">
+                <div class="sensor-icon">WL</div>
+                <div>
+                    <h3>Water Level</h3>
+                    <p>JSN-SR04T</p>
+                </div>
+                <strong id="waterLevel">35 cm</strong>
+            </div>
+
+            <div class="sensor-card">
+                <div class="sensor-icon">FAN</div>
+                <div>
+                    <h3>Ventilation</h3>
+                    <p>Automatic Blower</p>
+                </div>
+                <strong id="blower">OFF</strong>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="control-section">
+
+        <div>
+            <h2>Automatic Safety Response</h2>
+            <p>System response based on environmental conditions</p>
+        </div>
+
+        <div class="response-grid">
+
+            <div class="response-item">
+                <span class="indicator green"></span>
+                <div>
+                    <strong>Safety Status</strong>
+                    <p id="responseStatus">Normal</p>
+                </div>
+            </div>
+
+            <div class="response-item">
+                <span class="indicator"></span>
+                <div>
+                    <strong>Alarm</strong>
+                    <p id="alarmStatus">OFF</p>
+                </div>
+            </div>
+
+            <div class="response-item">
+                <span class="indicator"></span>
+                <div>
+                    <strong>Blower</strong>
+                    <p id="blowerStatus">OFF</p>
+                </div>
+            </div>
+
+            <div class="response-item">
+                <span class="indicator"></span>
+                <div>
+                    <strong>Supervisor Alert</strong>
+                    <p id="supervisorStatus">No Alert</p>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="events-section">
+
+        <div class="section-heading">
+            <h2>Safety Event History</h2>
+            <span>Recent system events</span>
+        </div>
+
+        <div id="events">
+
+            <div class="event">
+                <div class="event-dot safe-dot"></div>
+                <div>
+                    <strong>System Started</strong>
+                    <p>Safety monitoring system initialized</p>
+                    <small>Just now</small>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    Smart Sewer Safety System • Prototype Dashboard
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+==================================================================================================================================
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #1e293b;
+}
+
+header {
+    background: #102a43;
+    color: white;
+    padding: 25px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+header p {
+    color: #cbd5e1;
+}
+
+.system-online {
+    background: #173d5f;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.system-online span {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 7px;
+}
+
+main {
+    width: 88%;
+    max-width: 1250px;
+    margin: 30px auto;
+}
+
+.top-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 22px;
+}
+
+.status-card,
+.worker-card,
+.control-section,
+.events-section {
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+}
+
+.section-title,
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-title h2,
+.section-heading h2 {
+    font-size: 20px;
+}
+
+.section-title span,
+.section-heading span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.status {
+    width: 180px;
+    padding: 18px;
+    margin: 25px auto 15px;
+    text-align: center;
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.safe {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.caution {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-card > p {
+    text-align: center;
+    color: #64748b;
+}
+
+.warning-box {
+    margin-top: 22px;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#entryPermission {
+    color: #15803d;
+    font-weight: bold;
+}
+
+.worker-card h2 {
+    margin-bottom: 20px;
+}
+
+.worker-card label {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.worker-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.worker-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+button {
+    border: none;
+    border-radius: 7px;
+    padding: 12px 20px;
+    background: #1769aa;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #12588e;
+}
+
+.entry-result {
+    margin-top: 18px;
+    padding: 12px;
+    background: #f1f5f9;
+    border-radius: 7px;
+    text-align: center;
+}
+
+.worker-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.worker-info div {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 8px;
+}
+
+.worker-info small {
+    display: block;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.worker-info strong {
+    font-size: 16px;
+}
+
+.exit-button {
+    width: 100%;
+    margin-top: 15px;
+    background: #475569;
+}
+
+section {
+    margin-bottom: 25px;
+}
+
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.sensor-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.sensor-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 9px;
+    background: #e8f1f8;
+    color: #1769aa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.sensor-card h3 {
+    font-size: 15px;
+}
+
+.sensor-card p {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.sensor-card > strong {
+    font-size: 20px;
+}
+
+.control-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+}
+
+.control-section > div:first-child {
+    min-width: 220px;
+}
+
+.control-section h2 {
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+.control-section p {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.response-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    flex: 1;
+}
+
+.response-item {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 9px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.response-item strong {
+    font-size: 13px;
+}
+
+.response-item p {
+    margin-top: 4px;
+}
+
+.indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.green {
+    background: #22c55e;
+}
+
+.events-section {
+    margin-top: 25px;
+}
+
+.events-section .section-heading {
+    margin-bottom: 20px;
+}
+
+.event {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.event-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-top: 5px;
+}
+
+.safe-dot {
+    background: #22c55e;
+}
+
+.event strong {
+    font-size: 14px;
+}
+
+.event p {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.event small {
+    display: block;
+    margin-top: 5px;
+    color: #94a3b8;
+}
+
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+
+    .top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sensor-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .control-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .response-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+
+    header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .sensor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .response-grid {
+        grid-template-columns: 1fr;
+    }
+}
+==================================================================================================================================
+let workerInside = false;
+let entryStartTime = null;
+let timerInterval = null;
+
+function checkEntry() {
+
+    const workerId =
+        document.getElementById("workerId").value.trim();
+
+    if (workerId === "") {
+        alert("Please enter Worker ID");
+        return;
+    }
+
+    const status =
+        document.getElementById("status").innerText;
+
+    const result =
+        document.getElementById("entryResult");
+
+    if (status === "SAFE") {
+
+        workerInside = true;
+
+        entryStartTime = new Date();
+
+        document.getElementById("entryTime").innerText =
+            entryStartTime.toLocaleTimeString();
+
+        result.innerText =
+            "ENTRY APPROVED for " + workerId;
+
+        result.style.color = "#15803d";
+
+        startTimer();
+
+        addEvent(
+            "Worker Entry Approved",
+            "Worker " + workerId + " entered the sewer area",
+            "safe"
+        );
+
+    } else {
+
+        result.innerText =
+            "ENTRY DENIED - DO NOT ENTER";
+
+        result.style.color = "#dc2626";
+
+        addEvent(
+            "Entry Denied",
+            "Worker " + workerId + " was denied entry due to unsafe conditions",
+            "danger"
+        );
+    }
+}
+
+function startTimer() {
+
+    clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+
+        if (!workerInside || !entryStartTime) {
+            return;
+        }
+
+        const now = new Date();
+
+        const difference =
+            Math.floor(
+                (now - entryStartTime) / 1000
+            );
+
+        const hours =
+            Math.floor(difference / 3600);
+
+        const minutes =
+            Math.floor(
+                (difference % 3600) / 60
+            );
+
+        const seconds =
+            difference % 60;
+
+        document.getElementById("timer").innerText =
+            String(hours).padStart(2, "0") + ":" +
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
+
+    }, 1000);
+}
+
+function workerExit() {
+
+    if (!workerInside) {
+
+        alert("No worker is currently inside");
+
+        return;
+    }
+
+    const workerId =
+        document.getElementById("workerId").value;
+
+    workerInside = false;
+
+    clearInterval(timerInterval);
+
+    document.getElementById("timer").innerText =
+        "00:00:00";
+
+    document.getElementById("entryResult").innerText =
+        "Worker exited safely";
+
+    document.getElementById("entryResult").style.color =
+        "#15803d";
+
+    addEvent(
+        "Worker Exit",
+        "Worker " + workerId + " exited safely",
+        "safe"
+    );
+}
+
+function addEvent(title, message, type) {
+
+    const events =
+        document.getElementById("events");
+
+    const event =
+        document.createElement("div");
+
+    event.className = "event";
+
+    let dotClass = "safe-dot";
+
+    if (type === "danger") {
+        dotClass = "danger-dot";
+    }
+
+    event.innerHTML = `
+        <div class="event-dot ${dotClass}"></div>
+
+        <div>
+            <strong>${title}</strong>
+            <p>${message}</p>
+            <small>${new Date().toLocaleTimeString()}</small>
+        </div>
+    `;
+
+    events.prepend(event);
+}
+
+function simulateDanger() {
+
+    const status =
+        document.getElementById("status");
+
+    status.innerText = "DANGER";
+
+    status.className = "status danger";
+
+    document.getElementById("statusMessage").innerText =
+        "Danger detected! Entry is not permitted.";
+
+    document.getElementById("entryPermission").innerText =
+        "DENIED";
+
+    document.getElementById("entryPermission").style.color =
+        "#dc2626";
+
+    document.getElementById("blower").innerText =
+        "ON";
+
+    document.getElementById("blowerStatus").innerText =
+        "ON";
+
+    document.getElementById("alarmStatus").innerText =
+        "ON";
+
+    document.getElementById("supervisorStatus").innerText =
+        "ALERT";
+
+    document.getElementById("responseStatus").innerText =
+        "Danger Detected";
+
+    addEvent(
+        "Hazard Detected",
+        "Unsafe environmental condition detected",
+        "danger"
+    );
+}
+
+setInterval(() => {
+
+    document.getElementById("lastUpdate").innerText =
+        "Updated " + new Date().toLocaleTimeString();
+
+}, 3000);
+=====================================================================================================================================
