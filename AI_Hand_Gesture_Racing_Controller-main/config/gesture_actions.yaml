@@ -1,6 +1,0 @@
-schema_version: 1
-mappings:
-  open_palm: [brake]
-  closed_fist: [accelerate]
-  victory: [nitro]
-  thumbs_up: [pause]
