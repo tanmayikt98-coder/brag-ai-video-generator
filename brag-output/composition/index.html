@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #00060a;
+        --panel: #010d14;
+        --panel-glass: rgba(1, 15, 24, 0.88);
+        --border: #0d3347;
+        --border-bright: #1a5c7a;
+        --cyan: #00d4ff;
+        --cyan-dim: #007a99;
+        --cyan-ghost: rgba(0, 212, 255, 0.08);
+        --text-white: #ffffff;
+        --text-bright: #d8f8ff;
+        --text-cyan: #8ffcff;
+        --text-dim: #5ab8cc;
+        --green: #00ff88;
+        --orange: #ff6b00;
+        --font-mono: "SF Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: var(--font-sans);
+        color: var(--text-bright);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Root composition */
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: radial-gradient(circle at 50% 50%, #021a29 0%, #00060a 75%);
+        overflow: hidden;
+      }
+
+      /* Background Grid & Scanlines */
+      .bg-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background-image: 
+          linear-gradient(to right, rgba(0, 212, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 212, 255, 0.035) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+
+      /* Persistent HUD Chrome (Header & Footer) */
+      .hud-header {
+        position: absolute;
+        top: 36px;
+        left: 64px;
+        right: 64px;
+        height: 48px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.22);
+        padding-bottom: 12px;
+        z-index: 50;
+      }
+      .hud-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .hud-logo-icon {
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--cyan);
+        border-radius: 4px;
+        transform: rotate(45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hud-logo-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--cyan);
+        border-radius: 50%;
+      }
+      .hud-logo-text {
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 4px;
+        color: var(--cyan);
+      }
+      .hud-badge {
+        background: rgba(0, 212, 255, 0.12);
+        border: 1px solid var(--cyan);
+        color: var(--text-cyan);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+      .hud-stats {
+        display: flex;
+        gap: 28px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      .hud-stat-val {
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      /* Scene Container Base */
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      }
+      .scene-content {
+        width: 1600px;
+        height: 840px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Typography */
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        color: var(--cyan);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .eyebrow::before, .eyebrow::after {
+        content: "";
+        display: inline-block;
+        width: 24px;
+        height: 2px;
+        background: var(--cyan);
+      }
+      .hero-title {
+        font-size: 76px;
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--text-white);
+        text-align: center;
+        margin-bottom: 24px;
+        text-shadow: 0 0 35px rgba(0, 212, 255, 0.35);
+      }
+      .hero-title span {
+        color: var(--cyan);
+      }
+      .subtitle {
+        font-size: 30px;
+        font-weight: 400;
+        line-height: 1.45;
+        color: var(--text-bright);
+        text-align: center;
+        max-width: 1050px;
+      }
+
+      /* High-tech Cards */
+      .tech-card {
+        background: var(--panel-glass);
+        border: 1px solid var(--border-bright);
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.05);
+        backdrop-filter: blur(12px);
+      }
+
+      /* Scene 1 Elements */
+      #scene-boot-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .reactor-ring {
+        position: relative;
+        width: 320px;
+        height: 320px;
+        margin-bottom: 36px;
+      }
+      .reactor-svg {
+        width: 100%;
+        height: 100%;
+        transform-origin: center;
+      }
+      .reactor-core {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, #8ffcff 0%, #00d4ff 50%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(6px);
+      }
+
+      /* Scene 2: Holographic Avatar */
+      .avatar-split {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 560px 1fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .avatar-display {
+        height: 580px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .avatar-wireframe {
+        width: 420px;
+        height: 460px;
+      }
+      .waveform-bar-wrap {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        height: 48px;
+        margin-top: 24px;
+      }
+      .wave-bar {
+        width: 6px;
+        background: var(--cyan);
+        border-radius: 3px;
+        box-shadow: 0 0 10px var(--cyan);
+      }
+      .features-col {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .feature-icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: rgba(0, 212, 255, 0.1);
+        border: 1px solid var(--cyan);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .feature-icon-box svg {
+        width: 28px;
+        height: 28px;
+        stroke: var(--cyan);
+      }
+      .feature-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-white);
+        margin-bottom: 6px;
+      }
+      .feature-desc {
+        font-size: 20px;
+        color: var(--text-dim);
+        line-height: 1.4;
+      }
+
+      /* Scene 3: Engine Matrix */
+      .engine-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        width: 100%;
+        margin-top: 36px;
+      }
+      .engine-card {
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid var(--border-bright);
+        background: var(--panel-glass);
+      }
+      .engine-card.active {
+        border-color: var(--cyan);
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
+      }
+      .engine-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .engine-name {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text-white);
+      }
+      .badge-cloud {
+        background: rgba(0, 212, 255, 0.15);
+        color: var(--text-cyan);
+        border: 1px solid var(--cyan);
+      }
+      .badge-local {
+        background: rgba(0, 255, 136, 0.15);
+        color: var(--green);
+        border: 1px solid var(--green);
+      }
+      .stack-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .stack-tag {
+        font-family: var(--font-mono);
+        font-size: 16px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text-bright);
+      }
+      .stack-tag.highlight {
+        background: rgba(0, 255, 136, 0.12);
+        border-color: var(--green);
+        color: var(--green);
+      }
+
+      /* Scene 4: Action Verification Terminal */
+      .terminal-wrap {
+        width: 1200px;
+        background: #010a10;
+        border: 1px solid var(--cyan-dim);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-top: 32px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 212, 255, 0.1);
+      }
+      .terminal-bar {
+        background: #03141f;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid #0d3347;
+      }
+      .term-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .term-title {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--text-dim);
+        letter-spacing: 2px;
+        margin-left: 10px;
+      }
+      .terminal-body {
+        padding: 32px 36px;
+        font-family: var(--font-mono);
+        font-size: 20px;
+        line-height: 1.8;
+      }
+      .term-line {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .term-prompt {
+        color: var(--cyan);
+        font-weight: 700;
+      }
+      .term-cmd {
+        color: var(--text-white);
+      }
+      .term-result {
+        color: var(--text-dim);
+        padding-left: 28px;
+      }
+      .status-done {
+        color: var(--green);
+        font-weight: 700;
+        background: rgba(0, 255, 136, 0.12);
+        padding: 4px 12px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+      }
+
+      /* Scene 5: Grand Finale */
+      .hero-finish {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .brand-crest {
+        width: 140px;
+        height: 140px;
+        position: relative;
+        margin-bottom: 28px;
+      }
+      .platform-pills {
+        display: flex;
+        gap: 16px;
+        margin-top: 36px;
+      }
+      .pill-item {
+        font-family: var(--font-mono);
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        padding: 10px 24px;
+        border-radius: 99px;
+        border: 1px solid rgba(0, 212, 255, 0.4);
+        background: rgba(0, 212, 255, 0.08);
+        color: var(--text-cyan);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top-Level Composition Root -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="19.5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Background Grid Overlay -->
+      <div class="bg-overlay" data-layout-ignore></div>
+
+      <!-- Persistent Top HUD Chrome -->
+      <div class="hud-header" data-layout-ignore>
+        <div class="hud-brand">
+          <div class="hud-logo-icon"><div class="hud-logo-dot"></div></div>
+          <span class="hud-logo-text">MARK LVI</span>
+          <span class="hud-badge">HUD ACTIVE</span>
+        </div>
+        <div class="hud-stats">
+          <div>LATENCY: <span class="hud-stat-val">0.16ms</span></div>
+          <div>AUDIO: <span class="hud-stat-val">FORMANT 50Hz</span></div>
+          <div>STATUS: <span class="hud-stat-val">VERIFIED</span></div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE 1: SYSTEM BOOT (0.0s - 3.7s) ================= -->
+      <div
+        id="scene-1"
+        class="scene clip"
+        data-start="0"
+        data-duration="3.7"
+        data-track-index="1"
+      >
+        <div id="scene-1-content" class="scene-content">
+          <div class="reactor-ring" data-layout-ignore>
+            <div class="reactor-core" id="core-glow-1"></div>
+            <svg class="reactor-svg" id="ring-svg-1" viewBox="0 0 320 320">
+              <circle cx="160" cy="160" r="140" fill="none" stroke="rgba(0, 212, 255, 0.2)" stroke-width="2" />
+              <circle cx="160" cy="160" r="120" fill="none" stroke="#00d4ff" stroke-width="3" stroke-dasharray="18 8" />
+              <circle cx="160" cy="160" r="90" fill="none" stroke="rgba(0, 255, 136, 0.4)" stroke-width="2" stroke-dasharray="8 12" />
+              <polygon points="160,80 230,200 90,200" fill="none" stroke="#00d4ff" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="eyebrow" id="s1-eyebrow">// REAL-TIME VOICE AI PROTOCOL</div>
+          <h1 class="hero-title" id="s1-title">INITIALIZING<br /><span>MARK LVI</span></h1>
+          <p class="subtitle" id="s1-sub">Cross-Platform Sovereign AI Assistant with Zero Subscriptions</p>
+        </div>
+      </div>
+
+      <!-- ================= SCENE 2: HOLOGRAPHIC AVATAR & LIP-SYNC (3.7s - 8.5s) ================= -->
+      <div
+        id="scene-2"
+        class="scene clip"
+        data-start="3.7"
+        data-duration="4.8"
+        data-track-index="1"
+      >
+        <div id="scene-2-content" class="scene-content">
+          <div class="avatar-split">
+            <!-- Left: Avatar Hologram Visualization -->
+            <div class="avatar-display tech-card" data-layout-ignore>
+              <svg class="avatar-wireframe" viewBox="0 0 400 440">
+                <ellipse cx="200" cy="200" rx="130" ry="170" fill="none" stroke="rgba(0,212,255,0.25)" stroke-width="2" />
+                <path d="M 120 180 Q 200 240 280 180" fill="none" stroke="#00d4ff" stroke-width="2" />
+                <path d="M 150 140 Q 200 170 250 140" fill="none" stroke="rgba(0,212,255,0.4)" stroke-width="1.5" />
+                <ellipse cx="160" cy="170" rx="18" ry="10" fill="none" stroke="#8ffcff" stroke-width="2" />
+                <ellipse cx="240" cy="170" rx="18" ry="10" fill="none" stroke="#8ffcff" stroke-width="2" />
+                <circle cx="160" cy="170" r="4" fill="#00d4ff" />
+                <circle cx="240" cy="170" r="4" fill="#00d4ff" />
+                <path d="M 200 160 L 192 220 L 208 220 Z" fill="none" stroke="#00d4ff" stroke-width="1.5" />
+                <ellipse id="wire-mouth" cx="200" cy="270" rx="38" ry="14" fill="none" stroke="#00ff88" stroke-width="2.5" />
+                <path d="M 100 170 L 140 330 L 200 370 L 260 330 L 300 170" fill="none" stroke="rgba(0,212,255,0.3)" stroke-width="1.5" />
+                <circle cx="200" cy="370" r="5" fill="#00d4ff" />
+              </svg>
+              <div class="waveform-bar-wrap" id="wave-bars">
+                <div class="wave-bar" style="height: 18px;"></div>
+                <div class="wave-bar" style="height: 36px;"></div>
+                <div class="wave-bar" style="height: 28px;"></div>
+                <div class="wave-bar" style="height: 44px;"></div>
+                <div class="wave-bar" style="height: 22px;"></div>
+                <div class="wave-bar" style="height: 38px;"></div>
+                <div class="wave-bar" style="height: 48px;"></div>
+                <div class="wave-bar" style="height: 30px;"></div>
+                <div class="wave-bar" style="height: 42px;"></div>
+                <div class="wave-bar" style="height: 24px;"></div>
+                <div class="wave-bar" style="height: 34px;"></div>
+                <div class="wave-bar" style="height: 16px;"></div>
+              </div>
+            </div>
+
+            <!-- Right: Feature Callouts -->
+            <div class="features-col">
+              <div class="eyebrow" id="s2-eyebrow">// REAL FACIAL GEOMETRY</div>
+              <h2 class="hero-title" style="text-align: left; font-size: 64px;" id="s2-title">
+                HOLOGRAPHIC AVATAR<br /><span>REAL LIP-SYNC</span>
+              </h2>
+              <div class="tech-card feature-item" id="f-item-1">
+                <div class="feature-icon-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div>
+                  <div class="feature-title">~50 Mouth Shapes / Sec</div>
+                  <div class="feature-desc">Formant audio tracking &amp; transcript sync — real closures and rounds without GPU.</div>
+                </div>
+              </div>
+              <div class="tech-card feature-item" id="f-item-2">
+                <div class="feature-icon-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg>
+                </div>
+                <div>
+                  <div class="feature-title">Universal Articulation</div>
+                  <div class="feature-desc">Unicode phonetic reduction: Latin, Cyrillic, and Greek work natively.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE 3: CHOOSE YOUR ENGINE (8.5s - 13.0s) ================= -->
+      <div
+        id="scene-3"
+        class="scene clip"
+        data-start="8.5"
+        data-duration="4.5"
+        data-track-index="1"
+      >
+        <div id="scene-3-content" class="scene-content">
+          <div class="eyebrow" id="s3-eyebrow">// PLUGGABLE ARCHITECTURE</div>
+          <h2 class="hero-title" id="s3-title">CHOOSE <span>WHAT RUNS IT</span></h2>
+          <p class="subtitle" id="s3-sub">Cloud intelligence or 100% offline local autonomy.</p>
+          
+          <div class="engine-grid">
+            <!-- Left Card: Gemini Live -->
+            <div class="engine-card" id="eng-card-1">
+              <div class="engine-header">
+                <div class="engine-name">Gemini Live API</div>
+                <div class="hud-badge badge-cloud" data-layout-ignore>CLOUD</div>
+              </div>
+              <p style="color: var(--text-bright); font-size: 24px; line-height: 1.45;">
+                Native real-time streaming · Sub-second latency.
+              </p>
+              <div class="stack-tags" data-layout-ignore>
+                <span class="stack-tag">Gemini 3.1 Flash Live</span>
+                <span class="stack-tag">Native Audio I/O</span>
+              </div>
+            </div>
+
+            <!-- Right Card: Local Stack -->
+            <div class="engine-card active" id="eng-card-2">
+              <div class="engine-header">
+                <div class="engine-name">Your Local Stack</div>
+                <div class="hud-badge badge-local" data-layout-ignore>OFFLINE</div>
+              </div>
+              <p style="color: var(--text-bright); font-size: 24px; line-height: 1.45;">
+                100% offline on CPU · Zero subscriptions.
+              </p>
+              <div class="stack-tags" data-layout-ignore>
+                <span class="stack-tag highlight">Ollama / LM Studio</span>
+                <span class="stack-tag highlight">Whisper + Piper TTS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE 4: VERIFIED SYSTEM CONTROL (13.0s - 16.5s) ================= -->
+      <div
+        id="scene-4"
+        class="scene clip"
+        data-start="13.0"
+        data-duration="3.5"
+        data-track-index="1"
+      >
+        <div id="scene-4-content" class="scene-content">
+          <div class="eyebrow" id="s4-eyebrow">// DIGITAL AUTONOMY</div>
+          <h2 class="hero-title" id="s4-title">IT SAYS <span>WHAT IT CHECKED</span></h2>
+          <p class="subtitle" id="s4-sub">A command is only marked done when verified in the OS process table.</p>
+
+          <div class="terminal-wrap" id="term-box">
+            <div class="terminal-bar" data-layout-ignore>
+              <div class="term-dot" style="background: #ff5f56;"></div>
+              <div class="term-dot" style="background: #ffbd2e;"></div>
+              <div class="term-dot" style="background: #27c93f;"></div>
+              <span class="term-title">MARK LVI SYSTEM VERIFIER // TERMINAL</span>
+            </div>
+            <div class="terminal-body">
+              <div class="term-line" id="tl-1">
+                <span class="term-prompt">&gt;</span>
+                <span class="term-cmd">jarvis.execute("launch_app", target="Code")</span>
+              </div>
+              <div class="term-result" id="tr-1">
+                → Process observed in process table (PID: 8412) — <span class="status-done">DONE ✓</span>
+              </div>
+              <div class="term-line" id="tl-2" style="margin-top: 16px;">
+                <span class="term-prompt">&gt;</span>
+                <span class="term-cmd">jarvis.memory.recall("project_context")</span>
+              </div>
+              <div class="term-result" id="tr-2">
+                → Retrieved persistent memory: "MARK LVI" — <span class="status-done">VERIFIED ✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SCENE 5: FINALE & OUTRO (16.5s - 19.5s) ================= -->
+      <div
+        id="scene-5"
+        class="scene clip"
+        data-start="16.5"
+        data-duration="3.0"
+        data-track-index="1"
+      >
+        <div id="scene-5-content" class="scene-content hero-finish">
+          <div class="brand-crest" data-layout-ignore>
+            <svg viewBox="0 0 140 140" style="width: 100%; height: 100%;">
+              <circle cx="70" cy="70" r="64" fill="none" stroke="#00d4ff" stroke-width="3" stroke-dasharray="12 6" />
+              <circle cx="70" cy="70" r="48" fill="rgba(0, 212, 255, 0.12)" stroke="rgba(0, 255, 136, 0.5)" stroke-width="2" />
+              <polygon points="70,36 100,88 40,88" fill="none" stroke="#00d4ff" stroke-width="3" />
+              <circle cx="70" cy="70" r="10" fill="#8ffcff" />
+            </svg>
+          </div>
+          <div class="eyebrow" id="s5-eyebrow">// YOU BUILT THE MACHINE. NOW LET IT SPEAK.</div>
+          <h1 class="hero-title" style="font-size: 88px; margin-bottom: 16px;" id="s5-title">
+            MARK <span>LVI</span>
+          </h1>
+          <p class="subtitle" style="font-size: 28px; max-width: 900px;" id="s5-sub">
+            The Ultimate Cross-Platform Personal AI Assistant
+          </p>
+          <div class="platform-pills" id="s5-pills" data-layout-ignore>
+            <span class="pill-item">WINDOWS</span>
+            <span class="pill-item">MACOS</span>
+            <span class="pill-item">LINUX</span>
+            <span class="pill-item" style="border-color: var(--green); color: var(--green);">ZERO SUBSCRIPTIONS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Music -->
+      <audio
+        id="bgm"
+        class="clip"
+        data-start="0"
+        data-duration="19.5"
+        data-volume="0.8"
+        data-track-index="9"
+        src="assets/music/happy-beats-business-moves-vol-11-by-ende-dot-app.mp3"
+      ></audio>
+    </div>
+
+    <!-- GSAP Animation Engine -->
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ================= SCENE 1 ANIMATIONS (0.0s - 3.7s) =================
+      // Start immediately visible at frame 0 so thumbnail/first frame is striking
+      tl.set("#scene-1-content", { opacity: 1, scale: 1 });
+      tl.set("#s1-eyebrow", { opacity: 1, y: 0 });
+      tl.set("#s1-title", { opacity: 1, y: 0 });
+      tl.set("#s1-sub", { opacity: 1, y: 0 });
+
+      tl.fromTo("#ring-svg-1", { rotation: 0 }, { rotation: 360, duration: 3.7, ease: "none" }, 0.0);
+      tl.fromTo("#core-glow-1", { scale: 0.85, opacity: 0.7 }, { scale: 1.25, opacity: 1, duration: 1.2, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.0);
+      tl.to("#scene-1-content", { opacity: 0, scale: 1.06, duration: 0.35, ease: "power2.in" }, 3.35);
+
+      // ================= SCENE 2 ANIMATIONS (3.7s - 8.5s) =================
+      tl.fromTo("#scene-2-content", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 3.7);
+      tl.fromTo("#wire-mouth", { scaleY: 0.4 }, { scaleY: 1.6, transformOrigin: "center", duration: 0.14, repeat: 28, yoyo: true, ease: "sine.inOut" }, 3.8);
+      const bars = document.querySelectorAll(".wave-bar");
+      bars.forEach((bar, idx) => {
+        tl.fromTo(bar, { scaleY: 0.3 }, { scaleY: 1.4, transformOrigin: "bottom", duration: 0.16 + (idx % 4) * 0.04, repeat: 22, yoyo: true, ease: "sine.inOut" }, 3.8 + idx * 0.03);
+      });
+      tl.fromTo("#s2-eyebrow", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4 }, 3.9);
+      tl.fromTo("#s2-title", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5 }, 4.1);
+      tl.fromTo("#f-item-1", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 4.5);
+      tl.fromTo("#f-item-2", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 5.5);
+      tl.to("#scene-2-content", { opacity: 0, scale: 0.96, duration: 0.35, ease: "power2.in" }, 8.15);
+
+      // ================= SCENE 3 ANIMATIONS (8.5s - 13.0s) =================
+      tl.fromTo("#scene-3-content", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 8.5);
+      tl.fromTo("#s3-eyebrow", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 8.55);
+      tl.fromTo("#s3-title", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, 8.65);
+      tl.fromTo("#s3-sub", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 }, 8.8);
+      tl.fromTo("#eng-card-1", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 8.96);
+      tl.fromTo("#eng-card-2", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 9.2);
+      tl.to("#scene-3-content", { opacity: 0, y: -25, duration: 0.35, ease: "power2.in" }, 12.65);
+
+      // ================= SCENE 4 ANIMATIONS (13.0s - 16.5s) =================
+      tl.fromTo("#scene-4-content", { opacity: 0, y: 25 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 13.0);
+      tl.fromTo("#s4-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 13.05);
+      tl.fromTo("#s4-title", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35 }, 13.15);
+      tl.fromTo("#term-box", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 13.3);
+      tl.fromTo("#tl-1", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.25 }, 13.5);
+      tl.fromTo("#tr-1", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 13.8);
+      tl.fromTo("#tl-2", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.25 }, 14.3);
+      tl.fromTo("#tr-2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 14.6);
+      tl.to("#scene-4-content", { opacity: 0, scale: 1.05, duration: 0.35, ease: "power2.in" }, 16.15);
+
+      // ================= SCENE 5 ANIMATIONS (16.5s - 19.5s) =================
+      tl.fromTo("#scene-5-content", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power4.out" }, 16.5);
+      tl.fromTo(".brand-crest", { rotation: -60, scale: 0.6 }, { rotation: 0, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, 16.55);
+      tl.fromTo("#s5-eyebrow", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.3 }, 16.65);
+      tl.fromTo("#s5-title", { opacity: 0, y: 25, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power4.out" }, 16.75);
+      tl.fromTo("#s5-sub", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4 }, 16.85);
+      tl.fromTo("#s5-pills", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.3 }, 17.1);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
